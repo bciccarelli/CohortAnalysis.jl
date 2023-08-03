@@ -2,16 +2,14 @@ using CSV
 using DataFrames
 using ArgParse
 using JSON
-using ExcelFiles, XLSX
+using XLSX
 using FileIO
 # Add your own libraries here for the specific functionality. For instance, the chart_json and cohorts libraries do not have Julia equivalents.
 
 include("./cohorts.jl")
-include("./chart_json.jl")
+include("./chartjson.jl")
 
 function main()
-    
-    
     s = ArgParseSettings()
 
     @add_arg_table s begin
@@ -101,5 +99,3 @@ function main()
     heatmaps_csv = [vcat(df, DataFrame()) for df in heatmaps]
     CSV.write("files/$(output_id).csv", vcat(heatmaps_csv...))
 end
-
-@time main()
