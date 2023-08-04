@@ -1,7 +1,3 @@
-using CSV
-using DataFrames
-using Dates
-
 # Function to generate cohorts
 function cohort_generation(df)
     # Extract the year from the datetime objects

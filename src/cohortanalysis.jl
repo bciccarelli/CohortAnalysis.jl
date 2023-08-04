@@ -1,15 +1,17 @@
+module CohortAnalysis
+
 using CSV
 using DataFrames
 using ArgParse
 using JSON
 using XLSX
 using FileIO
-# Add your own libraries here for the specific functionality. For instance, the chart_json and cohorts libraries do not have Julia equivalents.
+using Dates
 
 include("./cohorts.jl")
 include("./chartjson.jl")
 
-function main()
+function julia_main()::Cint
     s = ArgParseSettings()
 
     @add_arg_table s begin
@@ -39,7 +41,7 @@ function main()
         CSV.read(file_name, DataFrame)
     catch e
         rethrow(e)
-        exit()
+        return 1
     end
 
     cohorts = cohort_generation(raw)
@@ -98,4 +100,7 @@ function main()
 
     heatmaps_csv = [vcat(df, DataFrame()) for df in heatmaps]
     CSV.write("files/$(output_id).csv", vcat(heatmaps_csv...))
+    return 0
+end
+
 end
