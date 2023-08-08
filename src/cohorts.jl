@@ -21,11 +21,9 @@ function cohort_generation(df)
 
     grouped = groupby(df, "CustomerID")
 
-    cohorts = combine(grouped, "Date" => minimum)
-    df = leftjoin(df, cohorts, on = :CustomerID)
+    cohorts = combine(grouped, :Date => minimum => :Cohort)
 
-    #rename Order Date_minimum to cohort
-    df = rename(df, "Date_minimum" => :Cohort)
+    df = leftjoin(df::DataFrame, cohorts::DataFrame, on=:CustomerID)
 
     # Create a new column called Cohort Index, which is the number of years between the cohort and the order date
     df[!, "Cohort_Index"] = (df[:, "Date"] .- df[:, "Cohort"])

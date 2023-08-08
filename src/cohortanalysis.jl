@@ -62,7 +62,15 @@ function julia_main()::Cint
     for heatmap in heatmaps
         # round heatmap values to 4 decimal places
         heatmap = round.(heatmap, digits=4)
-        push!(charts, build_chart_json("title", heatmap[:,1], names(heatmap), heatmap[:,Not(1)]))
+        
+        xvalues = names(heatmap[:,Not(1)])
+        yvalues = heatmap[:, 1]
+        zvalues = heatmap[:,Not(1)]
+        transposed_df = permutedims(zvalues)
+        converted_array = [[ismissing(cell) ? nothing : cell for cell in row] for row in eachrow(transposed_df)]
+        zvalues = JSON.json(converted_array)
+        
+        push!(charts, build_chart_json("title", xvalues, yvalues, zvalues))
     end
 
     sections = []
