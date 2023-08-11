@@ -42,3 +42,20 @@ function float_to_string(n::Float64)::String
         return "0." * "0"^(-exp - 1) * replace(base, "." => "")
     end
 end
+
+function named_chart(heatmap::DataFrame, title::String)
+    heatmap = round.(heatmap, digits=4)
+    
+    xvalues = names(heatmap[:,Not(1)])
+    yvalues = heatmap[:, 1]
+    zvalues = heatmap[:,Not(1)]
+    transposed_df = permutedims(zvalues)
+    zvalues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(transposed_df)]
+
+    return build_chart_json(
+            title,
+            xvalues,
+            yvalues,
+            zvalues
+        )
+end

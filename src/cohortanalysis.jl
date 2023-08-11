@@ -50,24 +50,25 @@ function julia_main()::Cint
 
     base_year_sum_cohort, base_year_count_cohort = generate_base_cohorts(year_sum_cohort, year_count_cohort)
 
-    heatmaps = [year_sum_cohort, base_year_sum_cohort, year_count_cohort, base_year_count_cohort, aov_cohort, ltv_cohort]
+    heatmaps_df = [
+        year_sum_cohort,
+        base_year_sum_cohort,
+        year_count_cohort,
+        base_year_count_cohort,
+        aov_cohort,
+        ltv_cohort
+    ]
     
-    charts = []
-    for heatmap in heatmaps
-        # round heatmap values to 4 decimal places
-        heatmap = round.(heatmap, digits=4)
-        
-        xvalues = names(heatmap[:,Not(1)])
-        yvalues = heatmap[:, 1]
-        zvalues = heatmap[:,Not(1)]
-        transposed_df = permutedims(zvalues)
-        zvalues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(transposed_df)]
-
-        push!(charts, build_chart_json("title", xvalues, yvalues, zvalues))
-    end
-
-
-    sections = [build_section_json("Heatmaps", charts)]
+    heatmaps = [
+        named_chart(year_sum_cohort, "Yearly Cohorts - Revenue"), 
+        named_chart(base_year_sum_cohort, "Yearly Cohorts - Revenue, Baselined"), 
+        named_chart(year_count_cohort, "Yearly Cohorts - Customers"), 
+        named_chart(base_year_count_cohort, "Yearly Cohorts - Customers, Baselined"), 
+        named_chart(aov_cohort, "Yearly Cohorts - AOV"), 
+        named_chart(ltv_cohort, "Yearly Cohorts - LTV")
+    ]
+    
+    sections = [build_section_json("Heatmaps", heatmaps)]
 
     complete_json = build_complete_json(true, sections) |> JSON.json
 
@@ -76,7 +77,7 @@ function julia_main()::Cint
     isdir("files") || mkdir("files")
 
     XLSX.openxlsx("files/$(output_id).xlsx", mode="w") do xf
-        for (i, df) in enumerate(heatmaps)
+        for (i, df) in enumerate(heatmaps_df)
             title = "Sample_" * string(i)
             sheet = i == 1 ? xf[i] : XLSX.addsheet!(xf, title)
             XLSX.rename!(sheet, title)
@@ -84,7 +85,7 @@ function julia_main()::Cint
         end
     end
 
-    heatmaps_csv = vcat([vcat(df, DataFrame()) for df in heatmaps]...)
+    heatmaps_csv = vcat([vcat(df, DataFrame()) for df in heatmaps_df]...)
     CSV.write("files/$(output_id).csv", heatmaps_csv)
 
     return 0
