@@ -49,8 +49,8 @@ function named_chart(heatmap::DataFrame, title::String)
     xvalues = names(heatmap[:,Not(1)])
     yvalues = heatmap[:, 1]
     zvalues = heatmap[:,Not(1)]
-    transposed_df = permutedims(zvalues)
-    zvalues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(transposed_df)]
+
+    zvalues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(zvalues)]
 
     return build_chart_json(
             title,

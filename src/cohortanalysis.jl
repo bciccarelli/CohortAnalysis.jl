@@ -19,6 +19,12 @@ function julia_main()::Cint
         help = "file to read"
         "--id"
         help = "id of output files"
+        "--customerID"
+        help = "customerID column of input file"
+        "--transactionDate"
+        help = "transactionDate column of input file"
+        "--revenueItem"
+        help = "revenue column of input file"
     end
 
     parsed_args = parse_args(s)
@@ -26,13 +32,26 @@ function julia_main()::Cint
     if file_name === nothing
         file_name = "data/Cohort Data.csv"
     end
-    
     output_id = haskey(parsed_args, "id") ? parsed_args["id"] : "NO_ID"
     if output_id === nothing
         output_id = "NO_ID"
     end
-    
 
+    
+    customerID = haskey(parsed_args, "customerID") ? parsed_args["customerID"] : "data/Cohort Data.csv"
+    if customerID === nothing
+        customerID = "Unique Customer Number"
+    end
+    transactionDate = haskey(parsed_args, "transactionDate") ? parsed_args["transactionDate"] : "NO_ID"
+    if transactionDate === nothing
+        transactionDate = "Order Date"
+    end
+    revenueItem = haskey(parsed_args, "revenueItem") ? parsed_args["revenueItem"] : "data/Cohort Data.csv"
+    if revenueItem === nothing
+        revenueItem = "total"
+    end
+    
+    
     raw = try
         CSV.read(file_name, DataFrame)
     catch e
@@ -40,10 +59,10 @@ function julia_main()::Cint
         return 1
     end
 
-    cohorts = cohort_generation(raw)
+    cohorts = cohort_generation(raw, Symbol(customerID), Symbol(transactionDate), Symbol(revenueItem))
 
     year_sum_cohort = cohort_grouping(cohorts, sum)
-    year_count_cohort = cohort_grouping(cohorts, length)
+    year_count_cohort = cohort_grouping(cohorts, float ∘ length)
 
     aov_cohort = aov_cohort_generation(year_sum_cohort, year_count_cohort)
     ltv_cohort = ltv_cohort_generation(cohorts, year_sum_cohort)
