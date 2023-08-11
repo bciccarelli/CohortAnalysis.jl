@@ -29,14 +29,21 @@ end
 
 # Average Order Value
 function aov_cohort_generation(sum_cohort::DataFrame, count_cohort::DataFrame)::DataFrame
-    sum_cohort[:, Not(1)] ./= count_cohort[:, Not(1)] 
-    return sum_cohort
+    new_cohort = sum_cohort[:, Not(1)] ./ count_cohort[:, Not(1)] 
+    new_cohort = hcat(sum_cohort[:, 1], new_cohort)
+    rename!(new_cohort, :x1 => :Cohort)
+    return new_cohort
 end
 
-function ltv_cohort_generation(df::DataFrame, sum_cohort::DataFrame, method::Symbol=:sum)::DataFrame
+function ltv_cohort_generation(df::DataFrame, sum_cohort::DataFrame)::DataFrame
     count_people_cohort = cohort_grouping(df, length ∘ unique, :CustomerID)
     count_people_cohort[:, 2:end] .= count_people_cohort[:, 2]
-    return aov_cohort_generation(sum_cohort, count_people_cohort)
+
+    # Calculate Average Order Value (AOV) using aov_cohort_generation function
+    ltv_cohort = aov_cohort_generation(sum_cohort, count_people_cohort)
+
+    # Return the ltv_cohort DataFrame
+    return ltv_cohort
 end
 
 function baseline_cohort(df::DataFrame)::DataFrame

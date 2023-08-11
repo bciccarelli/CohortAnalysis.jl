@@ -61,8 +61,8 @@ function julia_main()::Cint
         yvalues = heatmap[:, 1]
         zvalues = heatmap[:,Not(1)]
         transposed_df = permutedims(zvalues)
-        zvalues = [[ismissing(cell) ? nothing : cell for cell in row] for row in eachrow(transposed_df)]
-        
+        zvalues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(transposed_df)]
+
         push!(charts, build_chart_json("title", xvalues, yvalues, zvalues))
     end
 
