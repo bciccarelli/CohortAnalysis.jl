@@ -69,3 +69,24 @@ function generate_base_cohorts(year_sum_cohort::DataFrame, year_count_cohort::Da
     base_year_count_cohort = baseline_cohort(year_count_cohort)
     return base_year_sum_cohort, base_year_count_cohort
 end
+
+function cohort_diagonals(cohort::DataFrame)
+    a = reverse(Matrix(cohort[:, 2:end]), dims=2)
+    b = reverse([(LinearAlgebra.diag(a, i)) for i in 0:minimum(size(a))-1])
+    
+    # Find the maximum length of the diagonals
+    max_len = maximum(length(diag) for diag in b)
+
+    # Pad each diagonal to the maximum length with `missing`
+    b_padded = [vcat(diag, fill(missing, max_len - length(diag))) for diag in b]
+
+    df = DataFrame(mapreduce(permutedims, vcat, b_padded), :auto)
+
+    # Shift each column
+    for i = 2:ncol(df)  # Start from second column and end before the last one
+        df[!, i] = [df[i:end, i]; Vector{Missing}(undef, i-1)]
+    end
+
+    df[!, :Year] = reverse(cohort[!, :Cohort])
+    return(df)
+end

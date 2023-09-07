@@ -7,6 +7,7 @@ using JSON
 using XLSX
 using FileIO
 using Dates
+using LinearAlgebra
 
 include("./cohorts.jl")
 include("./chartjson.jl")
@@ -37,7 +38,6 @@ function julia_main()::Cint
         output_id = "NO_ID"
     end
 
-    
     customerID = haskey(parsed_args, "customerID") ? parsed_args["customerID"] : "data/Cohort Data.csv"
     if customerID === nothing
         customerID = "Unique Customer Number"
@@ -69,6 +69,12 @@ function julia_main()::Cint
 
     base_year_sum_cohort, base_year_count_cohort = generate_base_cohorts(year_sum_cohort, year_count_cohort)
 
+    # print((aov_cohort; dims=2))
+    
+    year_sum_barchart = cohort_diagonals(year_sum_cohort)
+
+
+ 
     heatmaps_df = [
         year_sum_cohort,
         base_year_sum_cohort,
@@ -79,12 +85,13 @@ function julia_main()::Cint
     ]
     
     heatmaps = [
-        named_chart(year_sum_cohort, "Yearly Cohorts - Revenue"), 
-        named_chart(base_year_sum_cohort, "Yearly Cohorts - Revenue, Baselined"), 
-        named_chart(year_count_cohort, "Yearly Cohorts - Customers"), 
-        named_chart(base_year_count_cohort, "Yearly Cohorts - Customers, Baselined"), 
-        named_chart(aov_cohort, "Yearly Cohorts - AOV"), 
-        named_chart(ltv_cohort, "Yearly Cohorts - LTV")
+        named_heatmap(year_sum_cohort, "Yearly Cohorts - Revenue"), 
+        named_heatmap(base_year_sum_cohort, "Yearly Cohorts - Revenue, Baselined"), 
+        named_heatmap(year_count_cohort, "Yearly Cohorts - Customers"), 
+        named_heatmap(base_year_count_cohort, "Yearly Cohorts - Customers, Baselined"), 
+        named_heatmap(aov_cohort, "Yearly Cohorts - AOV"), 
+        named_heatmap(ltv_cohort, "Yearly Cohorts - LTV"),
+        named_barchart(year_sum_barchart, "Yearly Cohorts - Revenue"),
     ]
     
     sections = [build_section_json("Heatmaps", heatmaps)]

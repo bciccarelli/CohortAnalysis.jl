@@ -1,4 +1,4 @@
-function build_chart_json(title, xValues, yValues, zValues)
+function build_heatmap(title, xValues, yValues, zValues)
     return Dict(
         "layout" => Dict("title" => title),
         "data" => Dict(
@@ -7,6 +7,22 @@ function build_chart_json(title, xValues, yValues, zValues)
             "z" => zValues,
             "type" => "heatmap"
         )
+    )
+end
+
+function build_barchart(title, xValues, yValues)
+    return Dict(
+        "layout" => Dict(
+            "title" => title,
+            "barnorm" => "percent",
+            "barmode" => "stack",
+            "bargap" => "0.5"),
+        "data" => [Dict(
+            "x" => xValues,
+            "y" => y,
+            "type" => "bar",
+            "name" => year
+        ) for (year, y) in zip(reverse(xValues), yValues)]
     )
 end
 
@@ -43,19 +59,33 @@ function float_to_string(n::Float64)::String
     end
 end
 
-function named_chart(heatmap::DataFrame, title::String)
+function named_heatmap(heatmap::DataFrame, title::String)
     heatmap = round.(heatmap, digits=4)
     
-    xvalues = names(heatmap[:,Not(1)])
-    yvalues = heatmap[:, 1]
-    zvalues = heatmap[:,Not(1)]
+    xValues = names(heatmap[:,Not(1)])
+    yValues = heatmap[:, 1]
+    zValues = heatmap[:,Not(1)]
 
-    zvalues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(zvalues)]
+    zValues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(zValues)]
 
-    return build_chart_json(
+    return build_heatmap(
             title,
-            xvalues,
-            yvalues,
-            zvalues
+            xValues,
+            yValues,
+            zValues
+        )
+end
+
+function named_barchart(barchart::DataFrame, title::String)
+    barchart = round.(barchart, digits=4)
+    
+    xValues = barchart[!, :Year]
+    
+    yValues = [col for col in eachcol(barchart[:, 1:end-1])]
+    
+    return build_barchart(
+            title,
+            xValues,
+            yValues
         )
 end
