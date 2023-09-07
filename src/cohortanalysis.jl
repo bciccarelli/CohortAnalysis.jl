@@ -8,6 +8,7 @@ using XLSX
 using FileIO
 using Dates
 using LinearAlgebra
+using Printf
 
 include("./cohorts.jl")
 include("./chartjson.jl")
@@ -75,13 +76,14 @@ function julia_main()::Cint
 
 
  
-    heatmaps_df = [
+    charts_df = [
         year_sum_cohort,
         base_year_sum_cohort,
         year_count_cohort,
         base_year_count_cohort,
         aov_cohort,
-        ltv_cohort
+        ltv_cohort,
+        year_sum_barchart
     ]
     
     heatmaps = [
@@ -91,10 +93,12 @@ function julia_main()::Cint
         named_heatmap(base_year_count_cohort, "Yearly Cohorts - Customers, Baselined"), 
         named_heatmap(aov_cohort, "Yearly Cohorts - AOV"), 
         named_heatmap(ltv_cohort, "Yearly Cohorts - LTV"),
-        named_barchart(year_sum_barchart, "Yearly Cohorts - Revenue"),
+    ]
+    barcharts = [
+        named_barchart(year_sum_barchart, "Yearly Cohorts - Revenue")
     ]
     
-    sections = [build_section_json("Heatmaps", heatmaps)]
+    sections = [build_section_json("Heatmaps", heatmaps), build_section_json("Barcharts", barcharts)]
 
     complete_json = build_complete_json(true, sections) |> JSON.json
 
@@ -103,7 +107,7 @@ function julia_main()::Cint
     isdir("files") || mkdir("files")
 
     XLSX.openxlsx("files/$(output_id).xlsx", mode="w") do xf
-        for (i, df) in enumerate(heatmaps_df)
+        for (i, df) in enumerate(charts_df)
             title = "Sample_" * string(i)
             sheet = i == 1 ? xf[i] : XLSX.addsheet!(xf, title)
             XLSX.rename!(sheet, title)
@@ -111,8 +115,8 @@ function julia_main()::Cint
         end
     end
 
-    heatmaps_csv = vcat([vcat(df, DataFrame()) for df in heatmaps_df]...)
-    CSV.write("files/$(output_id).csv", heatmaps_csv)
+    charts_csv = vcat([vcat(df, DataFrame()) for df in charts_df]...; cols=:union)
+    CSV.write("files/$(output_id).csv", charts_csv)
 
     return 0
 end

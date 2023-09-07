@@ -83,10 +83,11 @@ function cohort_diagonals(cohort::DataFrame)
     df = DataFrame(mapreduce(permutedims, vcat, b_padded), :auto)
 
     # Shift each column
-    for i = 2:ncol(df)  # Start from second column and end before the last one
-        df[!, i] = [df[i:end, i]; Vector{Missing}(undef, i-1)]
-    end
+    # for i = 2:ncol(df)  # Start from second column and end before the last one
+    #     df[!, i] = [df[i:end, i]; Vector{Missing}(undef, i-1)]
+    # end
 
     df[!, :Year] = reverse(cohort[!, :Cohort])
+
     return(df)
 end

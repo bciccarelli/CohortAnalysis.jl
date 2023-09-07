@@ -22,7 +22,7 @@ function build_barchart(title, xValues, yValues)
             "y" => y,
             "type" => "bar",
             "name" => year
-        ) for (year, y) in zip(reverse(xValues), yValues)]
+        ) for (year, y) in zip(xValues, yValues)]
     )
 end
 
@@ -40,24 +40,6 @@ function build_complete_json(success, sections)
     )
 end
 
-function float_to_string(n::Float64)::String
-    parts = split(string(n), 'e')
-    if length(parts) == 1
-        return parts[1]
-    end
-    base, exponent = parts
-    exp = parse(Int, exponent)
-    
-    if exp > 0
-        if contains(base, '.')
-            base = replace(base, "." => "")
-        end
-        zeros_to_add = exp - (length(base) - 1)
-        return base * (zeros_to_add > 0 ? "0"^zeros_to_add : "")
-    else
-        return "0." * "0"^(-exp - 1) * replace(base, "." => "")
-    end
-end
 
 function named_heatmap(heatmap::DataFrame, title::String)
     heatmap = round.(heatmap, digits=4)
@@ -66,7 +48,7 @@ function named_heatmap(heatmap::DataFrame, title::String)
     yValues = heatmap[:, 1]
     zValues = heatmap[:,Not(1)]
 
-    zValues = [[ismissing(cell) ? nothing : float_to_string(cell) for cell in row] for row in eachrow(zValues)]
+    zValues = [[ismissing(cell) ? nothing : @sprintf("%.3f",cell) for cell in row] for row in eachrow(zValues)]
 
     return build_heatmap(
             title,
@@ -79,7 +61,7 @@ end
 function named_barchart(barchart::DataFrame, title::String)
     barchart = round.(barchart, digits=4)
     
-    xValues = barchart[!, :Year]
+    xValues = reverse(barchart[!, :Year])
     
     yValues = [col for col in eachcol(barchart[:, 1:end-1])]
     
