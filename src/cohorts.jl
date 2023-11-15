@@ -1,3 +1,5 @@
+year_fmts = ["mm/dd/yyyy", "dd/mm/yyyy", "yyyy/mm/dd", "yyyy/dd/mm", "mm/dd/yy", "dd/mm/yy", "yy/dd/mm", "mm-dd-yyyy", "dd-mm-yyyy", "yyyy-mm-dd", "yyyy-dd-mm", "mm-dd-yy", "dd-mm-yy", "yy-mm-dd", "yy-dd-mm"]
+
 # Function to generate cohorts
 function cohort_generation(df::DataFrame, customerID::Symbol, transactionDate::Symbol, revenueItem::Symbol)::DataFrame
     
@@ -8,13 +10,18 @@ function cohort_generation(df::DataFrame, customerID::Symbol, transactionDate::S
     )
     rename!(df, new_names)
     
+    
     df = select(df, ["customerID", "transDate", "revenueItem"])
+
+    dropmissing!(df)
     
     # Convert 'transDate' column to datetime objects and extract year
-    try
-        df[!, "Date"] = Dates.year.(Dates.DateTime.(df[:, "transDate"], "mm/dd/yy"))
-    catch
-        df[!, "Date"] = Dates.year.(Dates.DateTime.(df[:, "transDate"], "mm/dd/yyyy"))
+    for fmt in year_fmts
+        try
+            df[!, "Date"] = Dates.year.(Dates.Date.(df[:, "transDate"], fmt))
+        catch
+
+        end
     end
     
     # Check if the first year is less than 999 and if so add 2000 to all years
